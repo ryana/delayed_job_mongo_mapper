@@ -39,7 +39,7 @@ module Delayed
             :run_at => {"$lte" => right_now},
             :limit => -limit, # In mongo, positive limits are 'soft' and negative are 'hard'
             :failed_at => nil,
-            :order => [:priority.desc, :run_at.desc]
+            :sort => [[:priority, 1], [:run_at, 1]]
           }
 
           where = "this.locked_at == null || this.locked_at < #{make_date(right_now - max_run_time)}"
