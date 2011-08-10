@@ -51,8 +51,17 @@ module Delayed
           (conditions[:priority] ||= {})['$gte'] = Worker.min_priority.to_i if Worker.min_priority
           (conditions[:priority] ||= {})['$lte'] = Worker.max_priority.to_i if Worker.max_priority
 
-          results = all(conditions.merge(:locked_by => worker_name))
-          
+          # When the queue gets large, this can take a while. Lets only get locked jobs
+          # every Nth time, since they will be rare anyway.  When the queue is small,
+          # this won't introduce too much of a delay processing jobs.
+          if @@skipped_locked_times.to_i > 10
+            results = all(conditions.merge(:locked_by => worker_name))
+          else
+            @@skipped_locked_times ||= 0
+            @@skipped_locked_times += 1
+            results = []
+          end
+
           #results += all(conditions.merge('$where' => where)) if results.size < limit
           results += all(conditions.merge('$or' => ors)) if results.size < limit
 
