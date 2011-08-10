@@ -57,6 +57,7 @@ module Delayed
           # this won't introduce too much of a delay processing jobs.
           if @@skipped_locked_times.to_i > 10
             results = all(conditions.merge(:locked_by => worker_name))
+            @@skipped_locked_times = 0
           else
             @@skipped_locked_times += 1
             results = []
